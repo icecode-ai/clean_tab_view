@@ -2,27 +2,7 @@
 
 part of 'package:clean_tab_view/src/extended/tabs.dart';
 
-/// [TabBarView]
-///
-
-/// A page view that displays the widget which corresponds to the currently
-/// selected tab.
-///
-/// This widget is typically used in conjunction with a [TabBar].
-///
-/// {@youtube 560 315 https://www.youtube.com/watch?v=POtoEH-5l40}
-///
-/// If a [TabController] is not provided, then there must be a [DefaultTabController]
-/// ancestor.
-///
-/// The tab controller's [TabController.length] must equal the length of the
-/// [children] list and the length of the [TabBar.tabs] list.
-///
-/// To see a sample implementation, visit the [TabController] documentation.
 class _TabBarView extends StatefulWidget {
-  /// Creates a page view with one child per tab.
-  ///
-  /// The length of [children] must be the same as the [controller]'s length.
   const _TabBarView({
     super.key,
     required this.children,
@@ -33,46 +13,23 @@ class _TabBarView extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
   });
 
-  /// This widget's selection and animation state.
-  ///
-  /// If [TabController] is not provided, then the value of [DefaultTabController.of]
-  /// will be used.
   /// todo check, update by doersoul@126.com
   final ExtendedTabController? controller;
 
-  /// One widget per tab.
-  ///
-  /// Its length must match the length of the [_TabBar.tabs]
-  /// list, as well as the [controller]'s [TabController.length].
   final List<Widget> children;
 
-  /// How the page view should respond to user input.
-  ///
-  /// For example, determines how the page view continues to animate after the
-  /// user stops dragging the page view.
-  ///
-  /// The physics are modified to snap to page boundaries using
-  /// [PageScrollPhysics] prior to being used.
-  ///
-  /// Defaults to matching platform conventions.
   final ScrollPhysics? physics;
 
-  /// {@macro flutter.widgets.scrollable.dragStartBehavior}
   final DragStartBehavior dragStartBehavior;
 
-  /// {@macro flutter.widgets.pageview.viewportFraction}
   final double viewportFraction;
 
-  /// {@macro flutter.material.Material.clipBehavior}
-  ///
-  /// Defaults to [Clip.hardEdge].
   final Clip clipBehavior;
 
   @override
   State<_TabBarView> createState() => _TabBarViewState();
 }
 
-/// zmtzawqlp
 class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
   TabController? _controller;
   late PageController _pageController;
@@ -82,9 +39,6 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
   int _scrollUnderwayCount = 0;
   bool _debugHasScheduledValidChildrenCountCheck = false;
 
-  // If the TabBarView is rebuilt with a new tab controller, the caller should
-  // dispose the old one. In that case the old controller's animation will be
-  // null and should not be accessed.
   bool get _controllerIsValid => _controller?.animation != null;
 
   /// todo check, add by doersoul@126.com
@@ -99,6 +53,7 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
   void _updateTabController() {
     final TabController? newController =
         widget.controller ?? DefaultTabController.maybeOf(context);
+
     assert(() {
       if (newController == null) {
         throw FlutterError(
@@ -119,6 +74,7 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     if (_controllerIsValid) {
       _controller!.animation!.removeListener(_handleTabControllerAnimationTick);
     }
+
     _controller = newController;
     if (_controller != null) {
       _controller!.animation!.addListener(_handleTabControllerAnimationTick);
@@ -147,28 +103,16 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     _updateChildren();
   }
 
-  // zmtzawqlp
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   _updateTabController();
-  //   _currentIndex = _controller!.index;
-  //   _pageController = PageController(
-  //     initialPage: _currentIndex!,
-  //     viewportFraction: widget.viewportFraction,
-  //   );
-  // }
-
   @override
   void didUpdateWidget(T oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (widget.controller != oldWidget.controller) {
       _updateTabController();
       _currentIndex = _controller!.index;
       _jumpToPage(_currentIndex!);
     }
-    // While a warp is under way, we stop updating the tab page contents.
-    // This is tracked in https://github.com/flutter/flutter/issues/31269.
+
     if (widget.children != oldWidget.children && _warpUnderwayCount == 0) {
       _updateChildren();
     }
@@ -179,8 +123,9 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     if (_controllerIsValid) {
       _controller!.animation!.removeListener(_handleTabControllerAnimationTick);
     }
+
     _controller = null;
-    // We don't own the _controller Animation, so it's not disposed here.
+
     super.dispose();
   }
 
@@ -195,10 +140,11 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
   void _handleTabControllerAnimationTick() {
     if (_scrollUnderwayCount > 0 || !_controller!.indexIsChanging) {
       return;
-    } // This widget is driving the controller's animation.
+    }
 
     if (_controller!.index != _currentIndex) {
       _currentIndex = _controller!.index;
+
       _warpToCurrentIndex();
     }
   }
@@ -241,30 +187,25 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
 
     assert((_currentIndex! - previousIndex).abs() > 1);
 
-    // initialPage defines which page is shown when starting the animation.
-    // This page is adjacent to the destination page.
     final int initialPage = _currentIndex! > previousIndex
         ? _currentIndex! - 1
         : _currentIndex! + 1;
 
     setState(() {
-      // Needed for `RenderSliverMultiBoxAdaptor.move` and kept alive children.
-      // For motivation, see https://github.com/flutter/flutter/pull/29188 and
-      // https://github.com/flutter/flutter/issues/27010#issuecomment-486475152.
       _childrenWithKey = List<Widget>.of(_childrenWithKey, growable: false);
+
       final Widget temp = _childrenWithKey[initialPage];
+
       _childrenWithKey[initialPage] = _childrenWithKey[previousIndex];
       _childrenWithKey[previousIndex] = temp;
     });
 
-    // Make a first jump to the adjacent page.
-    _jumpToPage(initialPage);
-
-    // Jump or animate to the destination page.
     // todo check, update by doersoul@126.com
     if (_isJump || duration == Duration.zero) {
       _jumpToPage(_currentIndex!);
     } else {
+      _jumpToPage(initialPage);
+
       await _animateToPage(
         _currentIndex!,
         duration: duration,
@@ -285,7 +226,6 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     );
   }
 
-  // Called when the PageView scrolls
   bool _handleScrollNotification(ScrollNotification notification) {
     if (_warpUnderwayCount > 0 || _scrollUnderwayCount > 0) {
       return false;
@@ -300,7 +240,9 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     }
 
     _scrollUnderwayCount += 1;
+
     final double page = _pageController.page!;
+
     if (notification is ScrollUpdateNotification &&
         !_controller!.indexIsChanging) {
       final bool pageChanged = (page - _controller!.index).abs() > 1.0;
@@ -308,14 +250,17 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
         _controller!.index = page.round();
         _currentIndex = _controller!.index;
       }
+
       _syncControllerOffset();
     } else if (notification is ScrollEndNotification) {
       _controller!.index = page.round();
       _currentIndex = _controller!.index;
+
       if (!_controller!.indexIsChanging) {
         _syncControllerOffset();
       }
     }
+
     _scrollUnderwayCount -= 1;
 
     return false;
@@ -325,11 +270,14 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     if (_debugHasScheduledValidChildrenCountCheck) {
       return true;
     }
+
     WidgetsBinding.instance.addPostFrameCallback((Duration duration) {
       _debugHasScheduledValidChildrenCountCheck = false;
+
       if (!mounted) {
         return;
       }
+
       assert(() {
         if (_controller!.length != widget.children.length) {
           throw FlutterError(
@@ -337,10 +285,13 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
             "number of children (${widget.children.length}) present in TabBarView's children property.",
           );
         }
+
         return true;
       }());
     }, debugLabel: 'TabBarView.validChildrenCountCheck');
+
     _debugHasScheduledValidChildrenCountCheck = true;
+
     return true;
   }
 

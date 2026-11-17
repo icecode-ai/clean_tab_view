@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 class DragHoldController {
   final ScrollPosition position;
+
   Drag? _drag;
 
   ScrollHoldController? _hold;

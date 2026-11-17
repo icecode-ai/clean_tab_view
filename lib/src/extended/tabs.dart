@@ -14,7 +14,6 @@ part 'package:clean_tab_view/src/official/tabs.dart';
 
 const ScrollPhysics _defaultScrollPhysics = NeverScrollableScrollPhysics();
 
-/// todo check, add by doersoul@126.com
 typedef ExtendedTransformer = Widget Function(Widget cld, int idx, double pos);
 
 final Widget _edge = GestureDetector(
@@ -48,60 +47,20 @@ class ExtendedTabBarView extends _TabBarView {
   /// if cacheExtent is 1, it has two pages in cache
   final int cacheExtent;
 
-  /// if link is true and current tabbarview over scroll,
-  /// it will check and scroll ancestor or child tabbarView.
-  /// default is true
   final bool link;
 
-  /// todo check, remove by doersoul@126.com
-  /// The PageController inside, [PageController.initialPage] should the same as [TabController.initialIndex]
-  /// final LinkPageController? pageController;
-
-  /// Whether the contents of the widget should ignore [PointerEvent] inputs.
-  ///
-  /// Setting this value to true prevents the use from interacting with the
-  /// contents of the widget with pointer events. The widget itself is still
-  /// interactive.
-  ///
-  /// For example, if the scroll position is being driven by an animation, it
-  /// might be appropriate to set this value to ignore pointer events to
-  /// prevent the user from accidentally interacting with the contents of the
-  /// widget as it animates. The user will still be able to touch the widget,
-  /// potentially stopping the animation.
-  ///
-  ///
-  /// if true, child can't accept event before [ExtendedPageView],[ExtendedScrollable] stop scroll.
-  ///
-  ///
-  /// if false, child can accept event before [ExtendedPageView],[ExtendedScrollable] stop scroll.
-  /// notice: we don't know there are any issues if we don't ignore [PointerEvent] inputs when it's scrolling.
-  ///
-  ///
-  /// Two way to solve issue that child can't hittest before [PageView] stop scroll.
-  /// 1. set [shouldIgnorePointerWhenScrolling] false
-  /// 2. use LessSpringClampingScrollPhysics to make animation quickly
-  ///
-  /// default is true.
   final bool shouldIgnorePointerWhenScrolling;
 
-  /// The axis along which the tab view scrolls.
-  ///
-  /// Defaults to [Axis.horizontal].
   final Axis scrollDirection;
 
-  /// todo check, add by doersoul@126.com
   final bool keepTab;
 
-  /// todo check, add by doersoul@126.com
   final ValueChanged<double>? onTabChanging;
 
-  /// todo check, add by doersoul@126.com
   final ValueChanged<int>? onTabActive;
 
-  /// todo check, add by doersoul@126.com
   final ValueChanged<bool>? onDragTab;
 
-  /// todo check, add by doersoul@126.com
   final ExtendedTransformer? transformer;
 
   final bool addEdge;
@@ -111,13 +70,10 @@ class ExtendedTabBarView extends _TabBarView {
 }
 
 class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
-  /// todo check, add by doersoul@126.com
   final ValueNotifier<double> _position = ValueNotifier(-1);
 
-  /// todo check, add by doersoul@126.com
   int _currentTabBarViewIndex = 0;
 
-  /// todo check, add by doersoul@126.com
   bool _pageControllerCreated = false;
 
   @override
@@ -136,22 +92,19 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
   @override
   void didChangeDependencies() {
     _updateTabController();
+
     _currentIndex = _controller!.index;
     _currentTabBarViewIndex = _controller!.index;
 
-    // todo check, update by doersoul@126.com
-    /// follow the official _TabBarViewState pattern:
-    /// create the controller only once, otherwise the previous one is leaked
-    /// (it is only disposed in [dispose]) and its listeners are lost.
     if (!_pageControllerCreated) {
       _pageControllerCreated = true;
+
       _pageController = LinkPageController(
         initialPage: _currentIndex ?? 0,
         viewportFraction: widget.viewportFraction,
         keepPage: widget.keepTab,
       );
 
-      // todo check, add by doersoul@126.com
       _pageController.addListener(_pageListener);
     }
 
@@ -162,21 +115,9 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
   void didUpdateWidget(covariant ExtendedTabBarView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // todo check, add by doersoul@126.com
     if (widget.controller != oldWidget.controller) {
       _currentTabBarViewIndex = _controller!.index;
     }
-
-    // todo check, remove by doersoul@126.com
-    // if ((widget.pageController != null &&
-    //         widget.pageController != oldWidget.pageController) ||
-    //     widget.viewportFraction != oldWidget.viewportFraction) {
-    //   _pageController = widget.pageController ??
-    //       LinkPageController(
-    //         initialPage: _currentIndex ?? 0,
-    //         viewportFraction: widget.viewportFraction,
-    //       );
-    // }
 
     if (widget.physics != oldWidget.physics) {
       updatePhysics();
@@ -188,10 +129,10 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
     }
   }
 
-  /// todo check, add by doersoul@126.com
   @override
   void dispose() {
     _pageController.removeListener(_pageListener);
+
     _pageController.dispose();
 
     _position.dispose();
@@ -201,7 +142,6 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
 
   @override
   ScrollPhysics? getScrollPhysics() {
-    // todo check，update by doersoul@126.com
     return _defaultScrollPhysics.applyTo(
       widget.physics == null
           ? const ClampingScrollPhysics()
@@ -215,7 +155,6 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
     super.linkParent<ExtendedTabBarView, ExtendedTabBarViewState>();
   }
 
-  /// todo check, add by doersoul@126.com
   @override
   _updateChildren() {
     if (widget.transformer != null) {
@@ -247,7 +186,6 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
     }
   }
 
-  /// todo check, add by doersoul@126.com
   void _pageListener() {
     _position.value = linkScrollController.offset;
 
@@ -275,6 +213,7 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
           'number of tabs (${widget.children.length}) present in TabBar\'s tabs property.',
         );
       }
+
       return true;
     }());
 
@@ -297,7 +236,6 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
 
     Widget tabview = buildGestureDetector(child: result);
 
-    /// todo check, add by doersoul@126.com
     if (widget.addEdge) {
       tabview = Stack(
         children: [
@@ -317,8 +255,10 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
     if (notification.depth == 0 &&
         !(_pageController as LinkPageController).isSelf) {
       notification.disallowIndicator();
+
       return true;
     }
+
     return false;
   }
 }
