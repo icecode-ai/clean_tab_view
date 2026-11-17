@@ -76,8 +76,8 @@ class _PageView extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.scrollBehavior,
     this.padEnds = true,
-  })  : controller = controller ?? _defaultPageController,
-        childrenDelegate = SliverChildListDelegate(children);
+  }) : controller = controller ?? _defaultPageController,
+       childrenDelegate = SliverChildListDelegate(children);
 
   /// Creates a scrollable list that works page by page using widgets that are
   /// created on demand.
@@ -121,12 +121,12 @@ class _PageView extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
     this.scrollBehavior,
     this.padEnds = true,
-  })  : controller = controller ?? _defaultPageController,
-        childrenDelegate = SliverChildBuilderDelegate(
-          itemBuilder,
-          findChildIndexCallback: findChildIndexCallback,
-          childCount: itemCount,
-        );
+  }) : controller = controller ?? _defaultPageController,
+       childrenDelegate = SliverChildBuilderDelegate(
+         itemBuilder,
+         findChildIndexCallback: findChildIndexCallback,
+         childCount: itemCount,
+       );
 
   /// Creates a scrollable list that works page by page with a custom child
   /// model.
@@ -353,8 +353,9 @@ class _PageViewState<T extends _PageView> extends State<T> {
       case Axis.horizontal:
         assert(debugCheckHasDirectionality(context));
         final TextDirection textDirection = Directionality.of(context);
-        final AxisDirection axisDirection =
-            textDirectionToAxisDirection(textDirection);
+        final AxisDirection axisDirection = textDirectionToAxisDirection(
+          textDirection,
+        );
         return widget.reverse
             ? flipAxisDirection(axisDirection)
             : axisDirection;
@@ -366,14 +367,18 @@ class _PageViewState<T extends _PageView> extends State<T> {
   @override
   Widget build(BuildContext context) {
     final AxisDirection axisDirection = _getDirection(context);
-    final ScrollPhysics physics = _ForceImplicitScrollPhysics(
-      allowImplicitScrolling: widget.allowImplicitScrolling,
-    ).applyTo(
-      widget.pageSnapping
-          ? _kPagePhysics.applyTo(widget.physics ??
-              widget.scrollBehavior?.getScrollPhysics(context))
-          : widget.physics ?? widget.scrollBehavior?.getScrollPhysics(context),
-    );
+    final ScrollPhysics physics =
+        _ForceImplicitScrollPhysics(
+          allowImplicitScrolling: widget.allowImplicitScrolling,
+        ).applyTo(
+          widget.pageSnapping
+              ? _kPagePhysics.applyTo(
+                  widget.physics ??
+                      widget.scrollBehavior?.getScrollPhysics(context),
+                )
+              : widget.physics ??
+                    widget.scrollBehavior?.getScrollPhysics(context),
+        );
 
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -395,15 +400,17 @@ class _PageViewState<T extends _PageView> extends State<T> {
         controller: widget.controller,
         physics: physics,
         restorationId: widget.restorationId,
-        scrollBehavior: widget.scrollBehavior ??
+        scrollBehavior:
+            widget.scrollBehavior ??
             ScrollConfiguration.of(context).copyWith(scrollbars: false),
         viewportBuilder: (BuildContext context, ViewportOffset position) {
           return Viewport(
             // TODO(dnfield): we should provide a way to set cacheExtent
             // independent of implicit scrolling:
             // https://github.com/flutter/flutter/issues/45632
-            cacheExtent: widget.allowImplicitScrolling ? 1.0 : 0.0,
-            cacheExtentStyle: CacheExtentStyle.viewport,
+            scrollCacheExtent: ScrollCacheExtent.viewport(
+              widget.allowImplicitScrolling ? 1.0 : 0.0,
+            ),
             axisDirection: axisDirection,
             offset: position,
             clipBehavior: widget.clipBehavior,
@@ -412,6 +419,7 @@ class _PageViewState<T extends _PageView> extends State<T> {
                 viewportFraction: widget.controller.viewportFraction,
                 delegate: widget.childrenDelegate,
                 padEnds: widget.padEnds,
+                allowImplicitScrolling: widget.allowImplicitScrolling,
               ),
             ],
           );
@@ -423,21 +431,40 @@ class _PageViewState<T extends _PageView> extends State<T> {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder description) {
     super.debugFillProperties(description);
-    description
-        .add(EnumProperty<Axis>('scrollDirection', widget.scrollDirection));
     description.add(
-        FlagProperty('reverse', value: widget.reverse, ifTrue: 'reversed'));
-    description.add(DiagnosticsProperty<PageController>(
-        'controller', widget.controller,
-        showName: false));
-    description.add(DiagnosticsProperty<ScrollPhysics>(
-        'physics', widget.physics,
-        showName: false));
-    description.add(FlagProperty('pageSnapping',
-        value: widget.pageSnapping, ifFalse: 'snapping disabled'));
-    description.add(FlagProperty('allowImplicitScrolling',
+      EnumProperty<Axis>('scrollDirection', widget.scrollDirection),
+    );
+    description.add(
+      FlagProperty('reverse', value: widget.reverse, ifTrue: 'reversed'),
+    );
+    description.add(
+      DiagnosticsProperty<PageController>(
+        'controller',
+        widget.controller,
+        showName: false,
+      ),
+    );
+    description.add(
+      DiagnosticsProperty<ScrollPhysics>(
+        'physics',
+        widget.physics,
+        showName: false,
+      ),
+    );
+    description.add(
+      FlagProperty(
+        'pageSnapping',
+        value: widget.pageSnapping,
+        ifFalse: 'snapping disabled',
+      ),
+    );
+    description.add(
+      FlagProperty(
+        'allowImplicitScrolling',
         value: widget.allowImplicitScrolling,
-        ifTrue: 'allow implicit scrolling'));
+        ifTrue: 'allow implicit scrolling',
+      ),
+    );
   }
 }
 

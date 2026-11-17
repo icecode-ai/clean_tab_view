@@ -185,7 +185,11 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
   }
 
   void _updateChildren() {
-    _childrenWithKey = KeyedSubtree.ensureUniqueKeysForList(widget.children);
+    _childrenWithKey = KeyedSubtree.ensureUniqueKeysForList(
+      widget.children.map<Widget>((Widget child) {
+        return Semantics(role: SemanticsRole.tabPanel, child: child);
+      }).toList(),
+    );
   }
 
   void _handleTabControllerAnimationTick() {
@@ -218,19 +222,23 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
     if (_isJump || duration == Duration.zero) {
       _jumpToPage(_currentIndex!);
     } else {
-      await _animateToPage(_currentIndex!,
-          duration: duration, curve: Curves.ease);
+      await _animateToPage(
+        _currentIndex!,
+        duration: duration,
+        curve: Curves.ease,
+      );
     }
+
     if (mounted) {
-      setState(() {
-        _updateChildren();
-      });
+      setState(_updateChildren);
     }
+
     return Future<void>.value();
   }
 
   Future<void> _warpToNonAdjacentTab(Duration duration) async {
     final int previousIndex = _controller!.previousIndex;
+
     assert((_currentIndex! - previousIndex).abs() > 1);
 
     // initialPage defines which page is shown when starting the animation.
@@ -249,28 +257,32 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
       _childrenWithKey[previousIndex] = temp;
     });
 
+    // Make a first jump to the adjacent page.
+    _jumpToPage(initialPage);
+
     // Jump or animate to the destination page.
     // todo check, update by doersoul@126.com
     if (_isJump || duration == Duration.zero) {
       _jumpToPage(_currentIndex!);
     } else {
-      // Make a first jump to the adjacent page.
-      _jumpToPage(initialPage);
-
-      await _animateToPage(_currentIndex!,
-          duration: duration, curve: Curves.ease);
+      await _animateToPage(
+        _currentIndex!,
+        duration: duration,
+        curve: Curves.ease,
+      );
     }
 
     if (mounted) {
-      setState(() {
-        _updateChildren();
-      });
+      setState(_updateChildren);
     }
   }
 
   void _syncControllerOffset() {
-    _controller!.offset =
-        clampDouble(_pageController.page! - _controller!.index, -1.0, 1.0);
+    _controller!.offset = clampDouble(
+      _pageController.page! - _controller!.index,
+      -1.0,
+      1.0,
+    );
   }
 
   // Called when the PageView scrolls
@@ -283,18 +295,22 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
       return false;
     }
 
+    if (!_controllerIsValid) {
+      return false;
+    }
+
     _scrollUnderwayCount += 1;
+    final double page = _pageController.page!;
     if (notification is ScrollUpdateNotification &&
         !_controller!.indexIsChanging) {
-      final bool pageChanged =
-          (_pageController.page! - _controller!.index).abs() > 1.0;
+      final bool pageChanged = (page - _controller!.index).abs() > 1.0;
       if (pageChanged) {
-        _controller!.index = _pageController.page!.round();
+        _controller!.index = page.round();
         _currentIndex = _controller!.index;
       }
       _syncControllerOffset();
     } else if (notification is ScrollEndNotification) {
-      _controller!.index = _pageController.page!.round();
+      _controller!.index = page.round();
       _currentIndex = _controller!.index;
       if (!_controller!.indexIsChanging) {
         _syncControllerOffset();
@@ -323,7 +339,7 @@ class _TabBarViewState<T extends _TabBarView> extends LinkScrollState<T> {
         }
         return true;
       }());
-    });
+    }, debugLabel: 'TabBarView.validChildrenCountCheck');
     _debugHasScheduledValidChildrenCountCheck = true;
     return true;
   }

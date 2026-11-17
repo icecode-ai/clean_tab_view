@@ -4,11 +4,8 @@ import 'package:clean_tab_view/src/gestures/drag_hold_controller.dart';
 import 'package:clean_tab_view/src/gestures/gesture_mixin.dart';
 import 'package:flutter/widgets.dart';
 
-/// The [SyncScrollController] to sync pixels for all of positions
 class SyncScrollController extends ScrollController
     with SyncScrollControllerMixin {
-  /// Creates a scroll controller that continually updates its
-  /// [initialScrollOffset] to match the last scroll notification it received.
   SyncScrollController({
     super.initialScrollOffset,
     super.keepScrollOffset,
@@ -16,7 +13,6 @@ class SyncScrollController extends ScrollController
   });
 }
 
-/// The mixin for [ScrollController] to sync pixels for all of positions
 mixin SyncScrollControllerMixin on ScrollController implements GestureMixin {
   late final SyncScrollHandler _syncHandler = SyncScrollHandler();
 
@@ -29,12 +25,14 @@ mixin SyncScrollControllerMixin on ScrollController implements GestureMixin {
   @override
   void detach(ScrollPosition position) {
     _syncHandler.detach(position);
+
     super.detach(position);
   }
 
   @override
   void dispose() {
     _syncHandler.dispose();
+
     super.dispose();
   }
 
@@ -104,6 +102,7 @@ class SyncScrollHandler implements GestureMixin {
 
   void detach(ScrollPosition position) {
     assert(_positionToListener.containsKey(position));
+
     _positionToListener[position]!.forceCancel();
     _positionToListener.remove(position);
   }

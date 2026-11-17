@@ -1,6 +1,6 @@
 import 'package:clean_tab_view/src/gestures/gesture_mixin.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 PageMetrics _getTestPageMetrics(BuildContext context) {
   return PageMetrics(
@@ -21,7 +21,6 @@ abstract class GestureStateMixin<T extends StatefulWidget> extends State<T>
   Map<Type, GestureRecognizerFactory>? get gestureRecognizers =>
       _gestureRecognizers;
 
-  // widget.physics
   ScrollPhysics? get physics;
 
   TextDirection? get textDirection => Directionality.maybeOf(context);
@@ -35,23 +34,14 @@ abstract class GestureStateMixin<T extends StatefulWidget> extends State<T>
 
   ScrollPhysics? _physics;
 
-  // @mustCallSuper
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     updatePhysics();
     initGestureRecognizers();
   }
 
-  // @override
-  // //@mustCallSuper
-  // void didUpdateWidget(covariant oldWidget) {
-  //   super.didUpdateWidget(oldWidget);
-  //   updatePhysics();
-  //   initGestureRecognizers();
-  // }
-
-  // Only call this from places that will definitely trigger a rebuild.
   void updatePhysics() {
     _physics = getScrollPhysics();
   }
@@ -75,7 +65,7 @@ abstract class GestureStateMixin<T extends StatefulWidget> extends State<T>
             HorizontalDragGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<
                   HorizontalDragGestureRecognizer
-                >(() => HorizontalDragGestureRecognizer(), (
+                >(HorizontalDragGestureRecognizer.new, (
                   HorizontalDragGestureRecognizer instance,
                 ) {
                   // https://github.com/flutter/flutter/issues/105702
@@ -88,32 +78,33 @@ abstract class GestureStateMixin<T extends StatefulWidget> extends State<T>
                     ..minFlingDistance = _physics?.minFlingDistance
                     ..minFlingVelocity = _physics?.minFlingVelocity
                     ..maxFlingVelocity = _physics?.maxFlingVelocity
-                    ..gestureSettings =
-                        MediaQuery.maybeOf(context)?.gestureSettings;
+                    ..gestureSettings = MediaQuery.maybeOf(context)
+                        ?.gestureSettings;
                 }),
           };
           break;
 
         case Axis.vertical:
           _gestureRecognizers = <Type, GestureRecognizerFactory>{
-            VerticalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<
-              VerticalDragGestureRecognizer
-            >(() => VerticalDragGestureRecognizer(), (
-              VerticalDragGestureRecognizer instance,
-            ) {
-              // https://github.com/flutter/flutter/issues/105702
-              instance
-                ..onDown = handleDragDown
-                ..onStart = handleDragStart
-                ..onUpdate = handleDragUpdate
-                ..onEnd = handleDragEnd
-                ..onCancel = handleDragCancel
-                ..minFlingDistance = _physics?.minFlingDistance
-                ..minFlingVelocity = _physics?.minFlingVelocity
-                ..maxFlingVelocity = _physics?.maxFlingVelocity
-                ..gestureSettings =
-                    MediaQuery.maybeOf(context)?.gestureSettings;
-            }),
+            VerticalDragGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                  VerticalDragGestureRecognizer
+                >(VerticalDragGestureRecognizer.new, (
+                  VerticalDragGestureRecognizer instance,
+                ) {
+                  // https://github.com/flutter/flutter/issues/105702
+                  instance
+                    ..onDown = handleDragDown
+                    ..onStart = handleDragStart
+                    ..onUpdate = handleDragUpdate
+                    ..onEnd = handleDragEnd
+                    ..onCancel = handleDragCancel
+                    ..minFlingDistance = _physics?.minFlingDistance
+                    ..minFlingVelocity = _physics?.minFlingVelocity
+                    ..maxFlingVelocity = _physics?.maxFlingVelocity
+                    ..gestureSettings = MediaQuery.maybeOf(context)
+                        ?.gestureSettings;
+                }),
           };
           break;
       }

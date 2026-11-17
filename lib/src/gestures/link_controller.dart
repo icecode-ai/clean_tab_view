@@ -3,16 +3,11 @@ import 'package:clean_tab_view/src/gestures/link_scroll_state.dart';
 import 'package:clean_tab_view/src/gestures/sync_controller.dart';
 import 'package:flutter/widgets.dart';
 
-/// The [LinkScrollController] to sync pixels for all of positions
 class LinkScrollController extends ScrollController
     with LinkScrollControllerMixin {
-  /// The Outer SyncScrollController, for example [ExtendedTabBarView] or [ExtendedPageView]
-  /// It make better experience when scroll on horizontal direction
   @override
   final LinkScrollControllerMixin? parent;
 
-  /// Creates a scroll controller that continually updates its
-  /// [initialScrollOffset] to match the last scroll notification it received.
   LinkScrollController({
     super.initialScrollOffset,
     super.keepScrollOffset,
@@ -21,16 +16,10 @@ class LinkScrollController extends ScrollController
   });
 }
 
-/// The [LinkPageController] to scroll Pages(PageView or TabBarView) when [FlexGrid] is reach the horizontal boundary
 class LinkPageController extends PageController with LinkScrollControllerMixin {
-  /// The Outer SyncScrollController, for example [ExtendedTabBarView] or [ExtendedPageView]
-  /// It make better experience when scroll on horizontal direction
   @override
   final LinkScrollControllerMixin? parent;
 
-  /// Creates a page controller.
-  ///
-  /// The [initialPage], [keepPage], and [viewportFraction] arguments must not be null.
   LinkPageController({
     super.initialPage,
     super.keepPage,
@@ -39,24 +28,16 @@ class LinkPageController extends PageController with LinkScrollControllerMixin {
   });
 }
 
-// TODO(zmtzawqlp): i want something like mixin LinkScrollControllerMixin with SyncScrollControllerMixin
-// so don't need to override everything in SyncScrollControllerMixin
-// https://github.com/dart-lang/language/issues/540
-// https://github.com/dart-lang/sdk/issues/50167
 mixin LinkScrollControllerMixin on ScrollController
     implements SyncScrollControllerMixin {
   late final SyncScrollHandler _syncHandler = SyncScrollHandler();
 
-  // The parent from user
   LinkScrollControllerMixin? get parent;
 
-  // The parent from link
   LinkScrollControllerMixin? _parent;
 
-  // The actual used parent
   LinkScrollControllerMixin? get _internalParent => parent ?? _parent;
 
-  // The current actived controller
   LinkScrollControllerMixin? _activedLinkParent;
 
   bool get parentIsNotNull => _internalParent != null;
@@ -135,12 +116,12 @@ mixin LinkScrollControllerMixin on ScrollController
       _activedLinkParent != null ? _activedLinkParent!.hasHold : _hasHold;
 
   bool get _hasDrag => _syncHandler.positionToListener.values.any(
-        (DragHoldController element) => element.hasDrag,
-      );
+    (DragHoldController element) => element.hasDrag,
+  );
 
   bool get _hasHold => _syncHandler.positionToListener.values.any(
-        (DragHoldController element) => element.hasHold,
-      );
+    (DragHoldController element) => element.hasHold,
+  );
 
   LinkScrollControllerMixin? _findParent(
     bool Function(LinkScrollControllerMixin parent) test,

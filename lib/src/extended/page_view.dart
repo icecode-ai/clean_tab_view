@@ -106,16 +106,18 @@ class _ExtendedPageViewState extends _PageViewState<ExtendedPageView> {
   @override
   Widget build(BuildContext context) {
     final AxisDirection axisDirection = _getDirection(context);
-    final ScrollPhysics physics = _ForceImplicitScrollPhysics(
-      allowImplicitScrolling: widget.allowImplicitScrolling,
-    ).applyTo(
-      widget.pageSnapping
-          ? _kPagePhysics.applyTo(
-              widget.physics ??
-                  widget.scrollBehavior?.getScrollPhysics(context),
-            )
-          : widget.physics ?? widget.scrollBehavior?.getScrollPhysics(context),
-    );
+    final ScrollPhysics physics =
+        _ForceImplicitScrollPhysics(
+          allowImplicitScrolling: widget.allowImplicitScrolling,
+        ).applyTo(
+          widget.pageSnapping
+              ? _kPagePhysics.applyTo(
+                  widget.physics ??
+                      widget.scrollBehavior?.getScrollPhysics(context),
+                )
+              : widget.physics ??
+                    widget.scrollBehavior?.getScrollPhysics(context),
+        );
 
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -140,7 +142,8 @@ class _ExtendedPageViewState extends _PageViewState<ExtendedPageView> {
         controller: widget.controller,
         physics: physics,
         restorationId: widget.restorationId,
-        scrollBehavior: widget.scrollBehavior ??
+        scrollBehavior:
+            widget.scrollBehavior ??
             ScrollConfiguration.of(context).copyWith(scrollbars: false),
         viewportBuilder: (BuildContext context, ViewportOffset position) {
           return Viewport(
@@ -148,10 +151,11 @@ class _ExtendedPageViewState extends _PageViewState<ExtendedPageView> {
             // independent of implicit scrolling:
             // https://github.com/flutter/flutter/issues/45632
             // zmtzawqlp
-            cacheExtent: widget.cacheExtent > 0
-                ? widget.cacheExtent.toDouble()
-                : (widget.allowImplicitScrolling ? 1.0 : 0.0),
-            cacheExtentStyle: CacheExtentStyle.viewport,
+            scrollCacheExtent: ScrollCacheExtent.viewport(
+              widget.cacheExtent > 0
+                  ? widget.cacheExtent.toDouble()
+                  : (widget.allowImplicitScrolling ? 1.0 : 0.0),
+            ),
             axisDirection: axisDirection,
             offset: position,
             clipBehavior: widget.clipBehavior,
@@ -160,6 +164,7 @@ class _ExtendedPageViewState extends _PageViewState<ExtendedPageView> {
                 viewportFraction: widget.controller.viewportFraction,
                 delegate: widget.childrenDelegate,
                 padEnds: widget.padEnds,
+                allowImplicitScrolling: widget.allowImplicitScrolling,
               ),
             ],
           );

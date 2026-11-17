@@ -2,29 +2,6 @@ import 'package:clean_tab_view/src/gestures/gesture_state_mixin.dart';
 import 'package:clean_tab_view/src/gestures/sync_controller.dart';
 import 'package:flutter/widgets.dart';
 
-/// class MyWidget extends StatefulWidget {
-///   const MyWidget({Key? key}) : super(key: key);
-///
-///   @override
-///   State<MyWidget> createState() => _MyWidgetState();
-/// }
-///
-/// class _MyWidgetState extends SyncScrollState<MyWidget> {
-///   @override
-///   Widget build(BuildContext context) {
-///       return buildGestureDetector(child:Container());
-///   }
-///
-///   @override
-///   ScrollPhysics? get physics => throw UnimplementedError();
-///
-///   @override
-///   Axis get scrollDirection => throw UnimplementedError();
-///
-///   @override
-///   SyncScrollControllerMixin get syncScrollController =>
-///       throw UnimplementedError();
-/// }
 abstract class SyncScrollState<T extends StatefulWidget>
     extends GestureStateMixin<T> {
   SyncScrollControllerMixin get syncScrollController;

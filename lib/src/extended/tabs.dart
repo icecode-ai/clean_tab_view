@@ -1,11 +1,14 @@
+import 'dart:ui' show SemanticsRole;
+
 import 'package:clean_tab_view/src/extended/page_view.dart';
 import 'package:clean_tab_view/src/extended/tab_controller.dart';
 import 'package:clean_tab_view/src/gestures/link_controller.dart';
 import 'package:clean_tab_view/src/gestures/link_scroll_state.dart';
 import 'package:clean_tab_view/src/gestures/scroll_physics.dart';
+import 'package:clean_tab_view/src/official/tab_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 part 'package:clean_tab_view/src/official/tabs.dart';
 
@@ -114,6 +117,9 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
   /// todo check, add by doersoul@126.com
   int _currentTabBarViewIndex = 0;
 
+  /// todo check, add by doersoul@126.com
+  bool _pageControllerCreated = false;
+
   @override
   bool get link => widget.link;
 
@@ -134,14 +140,20 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
     _currentTabBarViewIndex = _controller!.index;
 
     // todo check, update by doersoul@126.com
-    _pageController = LinkPageController(
-      initialPage: _currentIndex ?? 0,
-      viewportFraction: widget.viewportFraction,
-      keepPage: widget.keepTab,
-    );
+    /// follow the official _TabBarViewState pattern:
+    /// create the controller only once, otherwise the previous one is leaked
+    /// (it is only disposed in [dispose]) and its listeners are lost.
+    if (!_pageControllerCreated) {
+      _pageControllerCreated = true;
+      _pageController = LinkPageController(
+        initialPage: _currentIndex ?? 0,
+        viewportFraction: widget.viewportFraction,
+        keepPage: widget.keepTab,
+      );
 
-    // todo check, add by doersoul@126.com
-    _pageController.addListener(_pageListener);
+      // todo check, add by doersoul@126.com
+      _pageController.addListener(_pageListener);
+    }
 
     super.didChangeDependencies();
   }
@@ -212,19 +224,26 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
         final Widget item = widget.children[index];
 
         children.add(
-          AnimatedBuilder(
-            animation: _position,
-            builder: (BuildContext context, Widget? child) {
-              return widget.transformer!.call(child!, index, _position.value);
-            },
-            child: item,
+          Semantics(
+            role: SemanticsRole.tabPanel,
+            child: AnimatedBuilder(
+              animation: _position,
+              builder: (BuildContext context, Widget? child) {
+                return widget.transformer!.call(child!, index, _position.value);
+              },
+              child: item,
+            ),
           ),
         );
       }
 
       _childrenWithKey = KeyedSubtree.ensureUniqueKeysForList(children);
     } else {
-      _childrenWithKey = KeyedSubtree.ensureUniqueKeysForList(widget.children);
+      _childrenWithKey = KeyedSubtree.ensureUniqueKeysForList(
+        widget.children.map<Widget>((Widget child) {
+          return Semantics(role: SemanticsRole.tabPanel, child: child);
+        }).toList(),
+      );
     }
   }
 
@@ -252,8 +271,9 @@ class ExtendedTabBarViewState extends _TabBarViewState<ExtendedTabBarView> {
     assert(() {
       if (_controller!.length != widget.children.length) {
         throw FlutterError(
-            'Controller\'s length property (${_controller!.length}) does not match the \n'
-            'number of tabs (${widget.children.length}) present in TabBar\'s tabs property.');
+          'Controller\'s length property (${_controller!.length}) does not match the \n'
+          'number of tabs (${widget.children.length}) present in TabBar\'s tabs property.',
+        );
       }
       return true;
     }());

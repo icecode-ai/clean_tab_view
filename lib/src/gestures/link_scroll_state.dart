@@ -1,56 +1,8 @@
 import 'package:clean_tab_view/src/gestures/link_controller.dart';
 import 'package:clean_tab_view/src/gestures/sync_controller.dart';
 import 'package:clean_tab_view/src/gestures/sync_scroll_state.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-/// class MyWidget extends StatefulWidget {
-///   const MyWidget({Key? key}) : super(key: key);
-///
-///   @override
-///   State<MyWidget> createState() => _MyWidgetState();
-/// }
-///
-/// class _MyWidgetState extends LinkScrollState<MyWidget> {
-///   @override
-///   Widget build(BuildContext context) {
-///     return buildGestureDetector(child:Container());
-///   }
-///
-///   @override
-///   LinkScrollControllerMixin get linkScrollController =>
-///       throw UnimplementedError();
-///
-///   @override
-///   ScrollPhysics? get physics => throw UnimplementedError();
-///
-///   @override
-///   Axis get scrollDirection => throw UnimplementedError();
-///
-///   @override
-///   void didChangeDependencies() {
-///     // to something
-///     // call super after linkScrollController is ready
-///     super.didChangeDependencies();
-///   }
-///
-///   @override
-///   void didUpdateWidget(covariant MyWidget oldWidget) {
-///     // to something
-///     // call super after linkScrollController is ready
-///     super.didUpdateWidget(oldWidget);
-///   }
-///
-///   @override
-///   bool get link => true;
-///
-///   // must override this method
-///   @override
-///   void linkParent<S extends StatefulWidget, T extends LinkScrollState<S>>() {
-///     // link parent base on your case
-///     super.linkParent<ExtendedTabBarView, ExtendedTabBarViewState>();
-///   }
-/// }
 abstract class LinkScrollState<T extends StatefulWidget>
     extends SyncScrollState<T> {
   LinkScrollControllerMixin get linkScrollController;
@@ -64,6 +16,7 @@ abstract class LinkScrollState<T extends StatefulWidget>
   @mustCallSuper
   void didChangeDependencies() {
     linkParent();
+
     super.didChangeDependencies();
   }
 
@@ -71,12 +24,15 @@ abstract class LinkScrollState<T extends StatefulWidget>
   @mustCallSuper
   void didUpdateWidget(covariant T oldWidget) {
     linkParent();
+
     super.didUpdateWidget(oldWidget);
   }
 
   @mustCallSuper
+  // ignore: avoid_shadowing_type_parameters
   void linkParent<S extends StatefulWidget, T extends LinkScrollState<S>>() {
     linkScrollController.unlinkParent();
+
     if (link) {
       linkScrollController.linkParent<S, T>(context);
     }
@@ -85,6 +41,7 @@ abstract class LinkScrollState<T extends StatefulWidget>
   @override
   void handleDragUpdate(DragUpdateDetails details) {
     _handleParentController(details);
+
     super.handleDragUpdate(details);
   }
 
